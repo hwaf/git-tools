@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"flag"
+	"fmt"
 	"os"
 	"os/exec"
 	// "path/filepath"
@@ -13,16 +13,17 @@ import (
 )
 
 var (
-	g_exitcode = flag.Bool("exit-code", false, "return an exit code instead of a message")
-	g_unstaged = flag.Bool("unstaged", true, "check for unstaged files")
+	g_exitcode    = flag.Bool("exit-code", false, "return an exit code instead of a message")
+	g_unstaged    = flag.Bool("unstaged", true, "check for unstaged files")
 	g_uncommitted = flag.Bool("uncommitted", true, "check for staged but uncommitted files")
-	g_untracked = flag.Bool("untracked", true, "check for untracked files")
-	g_unmerged = flag.Bool("unmerged", true, "check for unmerged files")
-	g_ignoresub = flag.String("ignore-submodules", "<nil>", "ignore submodules, optionally specifying defaults to \"all\"")
-	g_warn = flag.Bool("warn", false, "do not issue an error, but just a warning")
+	g_untracked   = flag.Bool("untracked", true, "check for untracked files")
+	g_unmerged    = flag.Bool("unmerged", true, "check for unmerged files")
+	g_ignoresub   = flag.String("ignore-submodules", "<nil>", "ignore submodules, optionally specifying defaults to \"all\"")
+	g_warn        = flag.Bool("warn", false, "do not issue an error, but just a warning")
 )
 
 var g_output bool = false
+
 func output(msg string) {
 	g_output = true
 	fmt.Fprint(os.Stderr, msg)
@@ -48,17 +49,16 @@ func main() {
 		git = exec.Command(
 			"git", "status", "--porcelain", "--ignore-submodules=",
 			*g_ignoresub,
-			)
+		)
 	} else {
 		git = exec.Command("git", "status", "--porcelain")
 	}
 	bout, err := git.Output()
 	utils.HandleErr(err)
 
-	
 	g_lines := utils.SplitLines(bout)
 	//status := string(bout)
-	
+
 	if *g_unstaged {
 		var matched bool
 		for _, line := range g_lines {
@@ -83,7 +83,7 @@ func main() {
 			// git ls-files --error-unmatch --stage | grep -E '^160000' | sed -e 's/^.* //' | tr '\n' ' '
 			bout, err = exec.Command(
 				"git", "ls-files", "--error-unmatch", "--stage",
-				).Output()
+			).Output()
 			utils.HandleErr(err)
 			lines := utils.SplitLines(bout)
 			matched := false
@@ -101,8 +101,8 @@ func main() {
 				cmdargs := []string{"status", "--porcelain", "--"}
 				cmdargs = append(cmdargs, subm...)
 				bout, err = exec.Command(
-					"git",  cmdargs...,
-					).Output()
+					"git", cmdargs...,
+				).Output()
 				utils.HandleErr(err)
 				lines = utils.SplitLines(bout)
 				matched = false
@@ -119,7 +119,7 @@ func main() {
 		}
 	}
 
-	testfct := func(lines []string, pattern, message string)  {
+	testfct := func(lines []string, pattern, message string) {
 		var matched bool
 		for _, line := range lines {
 			var i bool
@@ -141,18 +141,18 @@ func main() {
 
 	if *g_unmerged {
 		testfct(
-			g_lines, 
-			"^(DD|AU|UD|UA|DU|AU|UU)", 
+			g_lines,
+			"^(DD|AU|UD|UA|DU|AU|UU)",
 			"There are unmerged files. Use \"git add <file>\" when merged.\n",
-			)
+		)
 	}
 
 	if *g_uncommitted {
 		testfct(
-			g_lines, 
-			"^(M|A|D|R|C)", 
+			g_lines,
+			"^(M|A|D|R|C)",
 			"There are uncommitted files. Use \"git commit\" to commit.\n",
-			)
+		)
 	}
 
 	if *g_untracked {
@@ -160,7 +160,7 @@ func main() {
 			g_lines,
 			"^?.*",
 			"There are untracked files not in .gitignore. Try \"make clean\" to remove temporary files.\n",
-			)
+		)
 	}
 
 	if g_output {

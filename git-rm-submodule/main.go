@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"flag"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -13,7 +13,7 @@ import (
 
 var (
 	g_no_commit = flag.Bool("no-commit", false, "do not commit the result")
-	g_verbose = flag.Bool("verbose", false, "")
+	g_verbose   = flag.Bool("verbose", false, "")
 )
 
 func debug(cmd *exec.Cmd) {
@@ -57,9 +57,9 @@ func main() {
 	}
 
 	git := exec.Command(
-		"git", "ls-files", 
+		"git", "ls-files",
 		"--error-unmatch", "--stage", "--", dir,
-		)
+	)
 	bout, err := git.Output()
 	utils.HandleErr(err)
 	out := strings.Trim(string(bout), " \r\n")
@@ -79,7 +79,7 @@ func main() {
 	if *g_verbose {
 		fmt.Printf("found submodule [%s]\n", dir)
 	}
-	
+
 	// ensure we are in the toplevel directory
 	git = exec.Command("git", "rev-parse", "--show-toplevel")
 	bout, err = git.Output()
@@ -103,7 +103,7 @@ func main() {
 	git = exec.Command("git", "check-clean")
 	debug(git)
 	utils.HandleErr(git.Run())
-	
+
 	// check for unpushed changes
 	git = exec.Command("git", "check-unpushed")
 	debug(git)
@@ -118,11 +118,11 @@ func main() {
 	git = exec.Command("git", "rev-parse", "--git-dir")
 	bout, err = git.Output()
 	utils.HandleErr(err)
-	
+
 	gitdir := strings.Trim(string(bout), " \r\n")
 	gitdir, err = filepath.Abs(gitdir)
 	utils.HandleErr(err)
-	
+
 	if *g_verbose {
 		fmt.Printf("gitdir [%s]\n", gitdir)
 	}
@@ -130,19 +130,19 @@ func main() {
 	// get submodule url
 	url := "unknown"
 	git = exec.Command(
-		"git", "config", "--get", 
+		"git", "config", "--get",
 		fmt.Sprintf("submodule.\"%s\".url", dir),
-		)
+	)
 	bout, err = git.Output()
 	if err == nil {
 		url = strings.Trim(string(bout), " \r\n")
 	}
-	
+
 	// remove config entries
 	git = exec.Command(
 		"git", "config", "-f", ".gitmodules", "--remove-section",
 		fmt.Sprintf("submodule.%s", dir),
-		)
+	)
 	debug(git)
 	err = git.Run()
 	utils.HandleErr(err)
@@ -150,7 +150,7 @@ func main() {
 	git = exec.Command(
 		"git", "config", "--remove-section",
 		fmt.Sprintf("submodule.%s", dir),
-		)
+	)
 	debug(git)
 	err = git.Run()
 	utils.HandleErr(err)
@@ -180,13 +180,12 @@ func main() {
 	git = exec.Command(
 		"git", "commit", "-m",
 		fmt.Sprintf("removed submodule [%s] (url: %q)", dir, url),
-		)
+	)
 	debug(git)
 	err = git.Run()
 	utils.HandleErr(err)
-	
+
 	// TODO: commit in super repositories of this one as well
 }
-
 
 // EOF
