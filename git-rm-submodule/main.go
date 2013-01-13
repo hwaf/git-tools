@@ -1,8 +1,6 @@
 package main
 
 import (
-	"bytes"
-	"bufio"
 	"fmt"
 	"flag"
 	"os"
@@ -10,40 +8,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gonuts/iochan"
+	"github.com/mana-fwk/git-tools/utils"
 )
 
 var (
 	g_no_commit = flag.Bool("no-commit", false, "do not commit the result")
 	g_verbose = flag.Bool("verbose", false, "")
 )
-
-func split_lines(b []byte) []string {
-	lines := []string{}
-	r := bufio.NewReader(bytes.NewBuffer(b))
-	for line := range iochan.ReaderChan(r, "\n") {
-		lines = append(lines, line)
-	}
-	return lines
-}
-
-func path_exists(name string) bool {
-	_, err := os.Stat(name)
-	if err == nil {
-		return true
-	}
-	if os.IsNotExist(err) {
-		return false
-	}
-	return false
-}
-
-func handle_err(err error) {
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "**error**: %v\n", err.Error())
-		os.Exit(1)
-	}
-}
 
 func debug(cmd *exec.Cmd) {
 	if *g_verbose {
@@ -66,23 +37,23 @@ func main() {
 	switch flag.NArg() {
 	case 0:
 		err = fmt.Errorf("you need to give a submodule directory to remove")
-		handle_err(err)
+		utils.HandleErr(err)
 	case 1:
 		dir = flag.Args()[0]
 	default:
 		// TODO: allow to remove n submodules in one go...
 		err = fmt.Errorf("you need to give a submodule directory to remove")
-		handle_err(err)
+		utils.HandleErr(err)
 	}
 
 	// make sure we get the correct collation stuff
 	err = os.Setenv("LC_MESSAGES", "C")
-	handle_err(err)
+	utils.HandleErr(err)
 
 	// check 'dir' is a valid submodule
-	if !path_exists(dir) {
+	if !utils.PathExists(dir) {
 		err = fmt.Errorf("no such directory [%s]", dir)
-		handle_err(err)
+		utils.HandleErr(err)
 	}
 
 	git := exec.Command(
@@ -90,19 +61,19 @@ func main() {
 		"--error-unmatch", "--stage", "--", dir,
 		)
 	bout, err := git.Output()
-	handle_err(err)
+	utils.HandleErr(err)
 	out := strings.Trim(string(bout), " \r\n")
 	if out == "" {
 		err = fmt.Errorf("no such submodule [%s]", dir)
-		handle_err(err)
+		utils.HandleErr(err)
 	}
 
 	// get the full path of the submodule
 	git = exec.Command("git", "ls-files", "--full-name", dir)
 	bout, err = git.Output()
-	handle_err(err)
+	utils.HandleErr(err)
 
-	lines := split_lines(bout)
+	lines := utils.SplitLines(bout)
 	dir = strings.Trim(lines[0], " \r\n")
 
 	if *g_verbose {
@@ -112,17 +83,17 @@ func main() {
 	// ensure we are in the toplevel directory
 	git = exec.Command("git", "rev-parse", "--show-toplevel")
 	bout, err = git.Output()
-	handle_err(err)
+	utils.HandleErr(err)
 	top := strings.Trim(string(bout), " \r\n")
 	top, err = filepath.Abs(top)
-	handle_err(err)
+	utils.HandleErr(err)
 
 	pwd, err := os.Getwd()
-	handle_err(err)
+	utils.HandleErr(err)
 	defer os.Chdir(pwd)
 
 	err = os.Chdir(top)
-	handle_err(err)
+	utils.HandleErr(err)
 
 	if *g_verbose {
 		fmt.Printf("root [%s]\n", top)
@@ -131,26 +102,26 @@ func main() {
 	// check if submodule is clean
 	git = exec.Command("git", "check-clean")
 	debug(git)
-	handle_err(git.Run())
+	utils.HandleErr(git.Run())
 	
 	// check for unpushed changes
 	git = exec.Command("git", "check-unpushed")
 	debug(git)
-	handle_err(git.Run())
+	utils.HandleErr(git.Run())
 
 	// check for local non-tracking-branches
 	git = exec.Command("git", "check-non-tracking")
 	debug(git)
-	handle_err(git.Run())
+	utils.HandleErr(git.Run())
 
 	// find the real git-dir
 	git = exec.Command("git", "rev-parse", "--git-dir")
 	bout, err = git.Output()
-	handle_err(err)
+	utils.HandleErr(err)
 	
 	gitdir := strings.Trim(string(bout), " \r\n")
 	gitdir, err = filepath.Abs(gitdir)
-	handle_err(err)
+	utils.HandleErr(err)
 	
 	if *g_verbose {
 		fmt.Printf("gitdir [%s]\n", gitdir)
@@ -174,7 +145,7 @@ func main() {
 		)
 	debug(git)
 	err = git.Run()
-	handle_err(err)
+	utils.HandleErr(err)
 
 	git = exec.Command(
 		"git", "config", "--remove-section",
@@ -182,19 +153,19 @@ func main() {
 		)
 	debug(git)
 	err = git.Run()
-	handle_err(err)
+	utils.HandleErr(err)
 
 	git = exec.Command("git", "rm", "--cached", dir)
 	debug(git)
 	err = git.Run()
-	handle_err(err)
+	utils.HandleErr(err)
 
 	err = os.RemoveAll(dir)
-	handle_err(err)
+	utils.HandleErr(err)
 
 	// remove git dir as well.
 	//err = os.RemoveAll(gitdir)
-	//handle_err(err)
+	//utils.HandleErr(err)
 
 	if *g_no_commit {
 		return
@@ -204,7 +175,7 @@ func main() {
 	git = exec.Command("git", "add", ".gitmodules")
 	debug(git)
 	err = git.Run()
-	handle_err(err)
+	utils.HandleErr(err)
 
 	git = exec.Command(
 		"git", "commit", "-m",
@@ -212,7 +183,7 @@ func main() {
 		)
 	debug(git)
 	err = git.Run()
-	handle_err(err)
+	utils.HandleErr(err)
 	
 	// TODO: commit in super repositories of this one as well
 }
