@@ -40,7 +40,7 @@ func get_gitroot() (string, error) {
 		filepath.Join(g_gitroot, "sub-repo-0", "file.txt"),
 		[]byte("this is a file in sub-repo-0\n"),
 		0700,
-		)
+	)
 	if err != nil {
 		_ = os.RemoveAll(g_gitroot)
 		return "", err
@@ -61,7 +61,7 @@ func get_gitroot() (string, error) {
 		_ = os.RemoveAll(g_gitroot)
 		return "", err
 	}
-	
+
 	// sub-repo1
 	cmd = exec.Command("git", "init", "sub-repo-1")
 	cmd.Dir = g_gitroot
@@ -75,7 +75,7 @@ func get_gitroot() (string, error) {
 		filepath.Join(g_gitroot, "sub-repo-1", "file.txt"),
 		[]byte("this is a file in sub-repo-1\n"),
 		0700,
-		)
+	)
 	if err != nil {
 		_ = os.RemoveAll(g_gitroot)
 		return "", err
@@ -106,23 +106,23 @@ func get_gitroot() (string, error) {
 	}
 
 	// add 2 submodules
-	for _,sub := range []string{"sub-repo-0", "sub-repo-1"} {
-		
+	for _, sub := range []string{"sub-repo-0", "sub-repo-1"} {
+
 		cmd = exec.Command(
-			"git", 
-			"submodule", "add", 
+			"git",
+			"submodule", "add",
 			filepath.Join(g_gitroot, sub),
 			filepath.Join("src", sub),
-			)
+		)
 		cmd.Dir = gitroot
 		err = cmd.Run()
 		if err != nil {
 			return "", err
 		}
 		cmd = exec.Command(
-			"git", "commit", "-m", 
+			"git", "commit", "-m",
 			fmt.Sprintf("adding subrepo [%s]", sub),
-			)
+		)
 		cmd.Dir = gitroot
 		err = cmd.Run()
 		if err != nil {
@@ -134,7 +134,7 @@ func get_gitroot() (string, error) {
 }
 
 func TestNormalSubmodule(t *testing.T) {
-	
+
 	g_gitroot, err := get_gitroot()
 	if err != nil {
 		t.Error(err)
@@ -164,7 +164,7 @@ func TestNormalSubmodule(t *testing.T) {
 	if err != nil {
 		t.Errorf("error: %v\noutput: %v\n", err, string(bout))
 	}
-	
+
 	// check the submodule has been removed
 	cmd = exec.Command("git", "submodule", "foreach", "")
 	cmd.Dir = gitroot
@@ -182,9 +182,9 @@ func TestNormalSubmodule(t *testing.T) {
 
 	// check the submodule has been also physically removed
 	if utils.PathExists(filepath.Join("src", "sub-repo-0")) {
-		t.Errorf("directory [%s] still exists", filepath.Join("src","sub-repo-0"))
+		t.Errorf("directory [%s] still exists", filepath.Join("src", "sub-repo-0"))
 	}
-	
+
 }
 
 func TestUncleanSubmodule(t *testing.T) {
@@ -202,7 +202,7 @@ func TestUncleanSubmodule(t *testing.T) {
 		filepath.Join(gitroot, "src", "sub-repo-0", "non-clean-file.txt"),
 		[]byte("non-clean file in sub-repo-0\n"),
 		0700,
-		)
+	)
 	if err != nil {
 		t.Error(err)
 	}
@@ -212,7 +212,7 @@ func TestUncleanSubmodule(t *testing.T) {
 		cmd := exec.Command(
 			"git",
 			"rm-submodule", filepath.Join("src", sub),
-			)
+		)
 		cmd.Dir = gitroot
 		bout, err := cmd.CombinedOutput()
 		if err == nil {
@@ -221,6 +221,6 @@ func TestUncleanSubmodule(t *testing.T) {
 		}
 	}
 
-	
 }
+
 // EOF

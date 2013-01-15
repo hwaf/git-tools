@@ -47,7 +47,7 @@ func main() {
 	var git *exec.Cmd
 	if *g_ignoresub != "" {
 		git = exec.Command(
-			"git", "status", "--porcelain", 
+			"git", "status", "--porcelain",
 			fmt.Sprintf("--ignore-submodules=%s", *g_ignoresub),
 		)
 	} else {

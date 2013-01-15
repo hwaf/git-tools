@@ -83,15 +83,15 @@ func TestGitRepo(t *testing.T) {
 		filepath.Join(gitroot, "non-clean-file.txt"),
 		[]byte("non-clean file in repo\n"),
 		0700,
-		)
+	)
 	if err != nil {
 		t.Error(err)
 	}
 
 	// check the repository is non-clean
 	cmd = exec.Command(
-	"git",
-	"check-clean", "-exit-code",
+		"git",
+		"check-clean", "-exit-code",
 	)
 	cmd.Dir = gitroot
 	err = cmd.Run()
@@ -127,8 +127,8 @@ func TestGitRepo(t *testing.T) {
 	}
 
 	cmd = exec.Command(
-	"git",
-	"check-clean", "-exit-code",
+		"git",
+		"check-clean", "-exit-code",
 	)
 	cmd.Dir = gitroot
 	err = cmd.Run()
