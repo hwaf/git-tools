@@ -18,7 +18,7 @@ var (
 	g_uncommitted = flag.Bool("uncommitted", true, "check for staged but uncommitted files")
 	g_untracked   = flag.Bool("untracked", true, "check for untracked files")
 	g_unmerged    = flag.Bool("unmerged", true, "check for unmerged files")
-	g_ignoresub   = flag.String("ignore-submodules", "<nil>", "ignore submodules, optionally specifying defaults to \"all\"")
+	g_ignoresub   = flag.String("ignore-submodules", "", "ignore submodules, optionally specifying defaults to \"all\"")
 	g_warn        = flag.Bool("warn", false, "do not issue an error, but just a warning")
 )
 
@@ -45,10 +45,10 @@ func main() {
 	}
 
 	var git *exec.Cmd
-	if *g_ignoresub != "<nil>" {
+	if *g_ignoresub != "" {
 		git = exec.Command(
-			"git", "status", "--porcelain", "--ignore-submodules=",
-			*g_ignoresub,
+			"git", "status", "--porcelain", 
+			fmt.Sprintf("--ignore-submodules=%s", *g_ignoresub),
 		)
 	} else {
 		git = exec.Command("git", "status", "--porcelain")
@@ -79,7 +79,7 @@ func main() {
 			output("There are unstaged changes. Use \"git add <file>\" to add.\n")
 		}
 
-		if *g_ignoresub != "<nil>" {
+		if *g_ignoresub != "" {
 			// git ls-files --error-unmatch --stage | grep -E '^160000' | sed -e 's/^.* //' | tr '\n' ' '
 			bout, err = exec.Command(
 				"git", "ls-files", "--error-unmatch", "--stage",
