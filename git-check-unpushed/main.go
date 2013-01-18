@@ -72,7 +72,7 @@ func main() {
 
 	ahead_re := regexp.MustCompile(
 		`.*?: ahead \(.(?P<ahead>.*?)*\)`,
-		)
+	)
 
 	for _, line := range lines {
 		//printf(">>> %q\n", line)
