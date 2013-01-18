@@ -131,7 +131,7 @@ func main() {
 	url := "unknown"
 	git = exec.Command(
 		"git", "config", "--get",
-		fmt.Sprintf("submodule.\"%s\".url", dir),
+		fmt.Sprintf("submodule.%s.url", dir),
 	)
 	bout, err = git.Output()
 	if err == nil {
@@ -164,8 +164,10 @@ func main() {
 	utils.HandleErr(err)
 
 	// remove git dir as well.
-	//err = os.RemoveAll(gitdir)
-	//utils.HandleErr(err)
+	if utils.PathExists(filepath.Join(gitdir, "modules", dir)) {
+		err = os.RemoveAll(filepath.Join(gitdir, "modules", dir))
+		utils.HandleErr(err)
+	}
 
 	if *g_no_commit {
 		return
@@ -179,7 +181,7 @@ func main() {
 
 	git = exec.Command(
 		"git", "commit", "-m",
-		fmt.Sprintf("removed submodule [%s] (url: %q)", dir, url),
+		fmt.Sprintf("removed submodule [%s] (url=%s)", dir, url),
 	)
 	debug(git)
 	err = git.Run()
