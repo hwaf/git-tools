@@ -60,7 +60,7 @@ func main() {
 	utils.HandleErr(err)
 
 	lines := utils.SplitLines(bout)
-	printf(">>> lines:\n%v\n", lines)
+	//printf(">>> lines:\n%v\n", lines)
 
 	branch_re := regexp.MustCompile(
 		`\* (?P<branch>.*?) (?P<hash>(\w|\d)*?) .*`,
@@ -71,7 +71,7 @@ func main() {
 	)
 
 	for _, line := range lines {
-		printf(">>> %q\n", line)
+		//printf(">>> %q\n", line)
 		sub := branch_re.FindStringSubmatch(line)
 		if sub == nil {
 			continue
