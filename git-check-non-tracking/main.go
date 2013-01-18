@@ -53,7 +53,7 @@ func main() {
 	// cycle all branches
 	cmd := exec.Command(
 		"git",
-		"branch", "-vv", "--no-color", //"--no-merged",
+		"branch", "-vv", "--no-color", "--no-merged",
 	)
 	//debug(cmd)
 	bout, err := cmd.Output()
